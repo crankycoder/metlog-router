@@ -12,6 +12,7 @@
 #
 # ***** END LICENSE BLOCK *****
 from gevent.queue import Empty, Queue
+from types import StringTypes
 import gevent
 
 try:
@@ -26,9 +27,9 @@ def run(inputs=None, filters=None, outputs=None, forced_outputs=None):
     """
     greenlets = []
     input_queue = Queue()
-    inputs, filters, outputs, default_outputs = [(i or []) for i in
-                                                 (inputs, filters, outputs,
-                                                  forced_outputs)]
+    inputs, filters, outputs, forced_outputs = [(i or []) for i in
+                                                (inputs, filters, outputs,
+                                                 forced_outputs)]
     outputs_map = dict()
     for output_plugin in outputs:
         outputs_map[output_plugin.name] = output_plugin
@@ -53,7 +54,10 @@ def run(inputs=None, filters=None, outputs=None, forced_outputs=None):
             for filter_plugin in filters:
                 msg, added_outputs = filter_plugin.filter_msg(msg)
                 if added_outputs:
-                    outputs_to_use.add([name for name in added_outputs])
+                    if isinstance(added_outputs, StringTypes):
+                        outputs_to_use.add(added_outputs)
+                    else:
+                        outputs_to_use.update([name for name in added_outputs])
 
             for output_name in outputs_to_use:
                 output_plugin = outputs_map[output_name]

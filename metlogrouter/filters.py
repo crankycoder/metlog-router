@@ -26,3 +26,8 @@ class EchoFilter(object):
         self.stream.write(msg_json + '\n')
         self.stream.flush()
         return (msg, None)
+
+
+class SendToStdoutFilter(object):
+    def filter_msg(self, msg):
+        return (msg, 'stdout')

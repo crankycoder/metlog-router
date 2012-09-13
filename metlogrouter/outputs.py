@@ -12,14 +12,18 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-from metlogrouter.filters import SendToStdoutFilter
-from metlogrouter.inputs import UdpInput
-from metlogrouter.outputs import StreamOutput
-from metlogrouter.runner import run
-import sys
+try:
+    import simplejson as json
+except ImportError:
+    import json  # NOQA
 
 
-inputs = [UdpInput(5566)]
-filters = [SendToStdoutFilter()]
-outputs = [StreamOutput('stdout', sys.stdout)]
-run(inputs=inputs, filters=filters, outputs=outputs)
+class StreamOutput(object):
+    def __init__(self, name, stream):
+        self.name = name
+        self.stream = stream
+
+    def deliver(self, msg):
+        msg_json = json.dumps(msg)
+        self.stream.write(msg_json + '\n')
+        self.stream.flush()
