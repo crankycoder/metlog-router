@@ -1,5 +1,6 @@
 build
 dist
+setup.cfg
 _build
 .coverage
 *.pyc
