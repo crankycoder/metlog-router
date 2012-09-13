@@ -1,0 +1,34 @@
+# ***** BEGIN LICENSE BLOCK *****
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# The Initial Developer of the Original Code is the Mozilla Foundation.
+# Portions created by the Initial Developer are Copyright (C) 2012
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Rob Miller (rmiller@mozilla.com)
+#
+# ***** END LICENSE BLOCK *****
+from gevent import socket
+import gevent
+
+
+class UdpInput(object):
+    """
+    Simple UDP socket listener.
+    """
+    def __init__(self, port):
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind(('', port))
+
+    def start(self, queue):
+        while True:
+            data, addr = self.socket.recvfrom(60000)
+            if not data:
+                gevent.sleep(.01)
+                continue
+            queue.put(data)
+            gevent.sleep(0)
