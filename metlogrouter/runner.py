@@ -12,12 +12,10 @@
 #
 # ***** END LICENSE BLOCK *****
 from gevent.queue import Empty, Queue
-from types import StringTypes
 import gevent
 
 
-def run(inputs=None, decoders=None, filters=None, outputs=None,
-        forced_outputs=None):
+def run(config):
     """
     Bootstrap the entire router.
     """
@@ -26,20 +24,20 @@ def run(inputs=None, decoders=None, filters=None, outputs=None,
 
     object_queue = Queue()
 
-    inputs, decoders, filters, outputs, forced_outputs = \
-            [(i or [])
-                for i in (inputs, decoders, filters, outputs, forced_outputs)]
-    outputs_map = dict()
-    for output_plugin in outputs:
-        outputs_map[output_plugin.name] = output_plugin
+    outputs = dict()
+    for output_plugin in config.get('outputs', []):
+        outputs[output_plugin.name] = output_plugin
 
-    for input_plugin in inputs:
-        # inputs must not block!
+    for input_plugin in config.get('inputs', []):
+        # inputs must only block greenlets, *not* the entire thread
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
 
-    for decode_plugin in decoders:
+    for decode_plugin in config.get('decoders', []):
         greenlets.append(gevent.spawn(decode_plugin.start,
-            input_queue, object_queue))
+                                      input_queue, object_queue))
+
+    filters = config.get('filters', [])
+    forced_outputs = config.get('forced_outputs', [])
 
     def filter_processor():
         """
@@ -58,7 +56,7 @@ def run(inputs=None, decoders=None, filters=None, outputs=None,
                     outputs_to_use.update([name for name in added_outputs])
 
             for output_name in outputs_to_use:
-                output_plugin = outputs_map[output_name]
+                output_plugin = outputs[output_name]
                 output_plugin.deliver(msg)
 
             gevent.sleep(0)

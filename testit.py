@@ -20,8 +20,9 @@ from metlogrouter.outputs import CounterOutput
 from metlogrouter.runner import run
 
 
-inputs = [UdpInput(5565)]
-decoders = [JSONDecoder()]
-filters = [NamedOutputFilter('counts')]
-outputs = [CounterOutput('counts')]
-run(inputs=inputs, decoders=decoders, filters=filters, outputs=outputs)
+config = {'inputs': [UdpInput(5565)],
+          'decoders': [JSONDecoder()],
+          'filters': [NamedOutputFilter('counts')],
+          'outputs': [CounterOutput('counts')],
+          }
+run(config)
