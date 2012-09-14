@@ -14,6 +14,8 @@
 
 from types import StringTypes
 
+from raven import Client
+
 
 class RavenOutput(object):
     """
@@ -24,11 +26,8 @@ class RavenOutput(object):
 
         if isinstance(uri, StringTypes):
             uri = [uri]
-        self.uri = uri
+        self.clients = [Client(u) for u in uri]
 
     def deliver(self, msg):
-        # TODO: take a look at logstash-metlog/logstash/outputs/sentry
-        # and hook appropriate parts from actual raven client
-        pass
-
-
+        for client in self.clients:
+            client.send(msg['payload'])
