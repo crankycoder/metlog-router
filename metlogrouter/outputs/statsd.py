@@ -42,8 +42,29 @@ class StatsdOutput(object):
         for h, port in self.hosts:
             self.clients.append(statsd.StatsClient(h, port))
 
-    def deliver(self, msg):
+    def counter(self, msg):
+
         for client in self.clients:
-            # TODO: decode parts from msg and send to statsd
-            # using the correct method signature
-            client.incr('SOMETHING_HERE')
+            # TODO: how are we supposed to use the ns key here?
+            client.incr(key, value, rate)
+
+    def timer(self, msg):
+        ns = msg['fields']['logger']
+        key = msg['fields']['name']
+        value = float(msg['payload'])
+        rate = float(msg['fields']['rate'])
+
+        for client in self.clients:
+            # TODO: how are we supposed to use the ns key here?
+            client.timing(key, value, rate)
+
+    def deliver(self, msg):
+        ns = msg['fields']['logger']
+        key = msg['fields']['name']
+        value = float(msg['payload'])
+        rate = float(msg['fields']['rate'])
+
+        if fields['type'] == 'counter':
+            self.counter(msg)
+        elif fields['type'] == 'timer':
+            self.timer(msg)
