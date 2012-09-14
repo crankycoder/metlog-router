@@ -21,23 +21,21 @@ def run(config):
     """
     greenlets = []
     input_queue = Queue()
-
     object_queue = Queue()
 
-    outputs = dict()
-    for output_plugin in config.get('outputs', []):
-        outputs[output_plugin.name] = output_plugin
+    inputs = config.get('inputs', dict())
+    decoders = config.get('decoders', dict())
+    filters = config.get('filters', list())
+    outputs = config.get('outputs', dict())
+    forced_outputs = config.get('forced_outputs', list())
 
-    for input_plugin in config.get('inputs', []):
+    for input_plugin in inputs.values():
         # inputs must only block greenlets, *not* the entire thread
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
 
-    for decode_plugin in config.get('decoders', []):
+    for decode_plugin in decoders.values():
         greenlets.append(gevent.spawn(decode_plugin.start,
                                       input_queue, object_queue))
-
-    filters = config.get('filters', [])
-    forced_outputs = config.get('forced_outputs', [])
 
     def filter_processor():
         """

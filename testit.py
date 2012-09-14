@@ -19,10 +19,14 @@ from metlogrouter.decoders import JSONDecoder
 from metlogrouter.outputs import CounterOutput
 from metlogrouter.runner import run
 
+inputs = {'udp': UdpInput(5565)}
+decoders = {'json': JSONDecoder()}
+filters = [NamedOutputFilter('counts')]
+outputs = {'counts': CounterOutput(100)}
 
-config = {'inputs': [UdpInput(5565)],
-          'decoders': [JSONDecoder()],
-          'filters': [NamedOutputFilter('counts')],
-          'outputs': [CounterOutput('counts')],
+config = {'inputs': inputs,
+          'decoders': decoders,
+          'filters': filters,
+          'outputs': outputs,
           }
 run(config)
