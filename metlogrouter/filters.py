@@ -11,6 +11,10 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+
+
+from types import StringTypes
+
 try:
     import simplejson as json
 except ImportError:
@@ -30,4 +34,14 @@ class EchoFilter(object):
 
 class SendToStdoutFilter(object):
     def filter_msg(self, msg):
-        return (msg, 'stdout')
+        return (msg, ['stdout'])
+
+
+class NamedOutputFilter(object):
+    def __init__(self, outputs):
+        if isinstance(outputs, StringTypes):
+            outputs = [outputs]
+        self.outputs = outputs
+
+    def filter_msg(self, msg):
+        return (msg, self.outputs)

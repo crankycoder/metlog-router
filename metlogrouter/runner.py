@@ -15,21 +15,20 @@ from gevent.queue import Empty, Queue
 from types import StringTypes
 import gevent
 
-try:
-    import simplejson as json
-except ImportError:
-    import json  # NOQA
 
-
-def run(inputs=None, filters=None, outputs=None, forced_outputs=None):
+def run(inputs=None, decoders=None, filters=None, outputs=None,
+        forced_outputs=None):
     """
     Bootstrap the entire router.
     """
     greenlets = []
     input_queue = Queue()
-    inputs, filters, outputs, forced_outputs = [(i or []) for i in
-                                                (inputs, filters, outputs,
-                                                 forced_outputs)]
+
+    object_queue = Queue()
+
+    inputs, decoders, filters, outputs, forced_outputs = \
+            [(i or [])
+                for i in (inputs, decoders, filters, outputs, forced_outputs)]
     outputs_map = dict()
     for output_plugin in outputs:
         outputs_map[output_plugin.name] = output_plugin
@@ -38,26 +37,25 @@ def run(inputs=None, filters=None, outputs=None, forced_outputs=None):
         # inputs must not block!
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
 
+    for decode_plugin in decoders:
+        greenlets.append(gevent.spawn(decode_plugin.start,
+            input_queue, object_queue))
+
     def filter_processor():
         """
         Get messages from the input queue and run them through the filters.
         """
         while True:
             try:
-                msg_json = input_queue.get_nowait()
+                msg = object_queue.get(timeout=0.01)
             except Empty:
-                gevent.sleep(.01)
                 continue
 
-            msg = json.loads(msg_json)
             outputs_to_use = set(forced_outputs)
             for filter_plugin in filters:
                 msg, added_outputs = filter_plugin.filter_msg(msg)
                 if added_outputs:
-                    if isinstance(added_outputs, StringTypes):
-                        outputs_to_use.add(added_outputs)
-                    else:
-                        outputs_to_use.update([name for name in added_outputs])
+                    outputs_to_use.update([name for name in added_outputs])
 
             for output_name in outputs_to_use:
                 output_plugin = outputs_map[output_name]

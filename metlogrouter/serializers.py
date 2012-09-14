@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # ***** BEGIN LICENSE BLOCK *****
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -10,18 +9,26 @@
 #
 # Contributor(s):
 #   Rob Miller (rmiller@mozilla.com)
+#   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-from metlogrouter.filters import NamedOutputFilter
 
-from metlogrouter.inputs import UdpInput
-from metlogrouter.serializers import JSONDecoder
-from metlogrouter.outputs import CounterOutput
-from metlogrouter.runner import run
+from gevent.queue import Empty
+
+try:
+    import simplejson as json
+except ImportError:
+    import json  # NOQA
 
 
-inputs = [UdpInput(5565)]
-decoders = [JSONDecoder()]
-filters = [NamedOutputFilter('counts')]
-outputs = [CounterOutput('counts')]
-run(inputs=inputs, decoders=decoders, filters=filters, outputs=outputs)
+class JSONDecoder(object):
+
+    def start(self, in_q, out_q):
+        self.in_q = in_q
+        self.out_q = out_q
+        while True:
+            try:
+                obj = self.in_q.get(timeout=0.1)
+            except Empty:
+                continue
+            self.out_q.put(json.loads(obj))
