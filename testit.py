@@ -15,7 +15,7 @@
 from metlogrouter.filters import NamedOutputFilter
 
 from metlogrouter.inputs import UdpInput
-from metlogrouter.serializers import JSONDecoder
+from metlogrouter.decoders import JSONDecoder
 from metlogrouter.outputs import CounterOutput
 from metlogrouter.runner import run
 
