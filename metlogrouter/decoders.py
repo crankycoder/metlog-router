@@ -12,7 +12,6 @@
 #   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-
 from gevent.queue import Empty
 
 try:
