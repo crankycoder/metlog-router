@@ -12,6 +12,7 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+
 try:
     import simplejson as json
 except ImportError:
