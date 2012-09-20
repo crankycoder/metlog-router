@@ -12,6 +12,7 @@
 #   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+import gevent
 from gevent.queue import Empty
 
 try:
@@ -29,5 +30,7 @@ class JSONDecoder(object):
             try:
                 obj = self.in_q.get(timeout=0.1)
             except Empty:
+                gevent.sleep(0)
                 continue
             self.out_q.put(json.loads(obj))
+            gevent.sleep(0)

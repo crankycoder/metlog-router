@@ -32,6 +32,7 @@ def run(config):
     for input_plugin in inputs.values():
         # inputs must only block greenlets, *not* the entire thread
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
+        print unicode(input_plugin)
 
     for decode_plugin in decoders.values():
         greenlets.append(gevent.spawn(decode_plugin.start,

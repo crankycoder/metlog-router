@@ -12,12 +12,22 @@
 #
 # ***** END LICENSE BLOCK *****
 
-def test_named_output_filter():
-    raise NotImplementedError
 
-def test_chained_filters():
-    """
-    We should be able to compose filters together
-    """
-    raise NotImplementedError
+from nose.tools import eq_
+from metlogrouter.filters import NamedOutputFilter, SendToStdoutFilter
+from gevent.queue import Empty, Queue
+import gevent
 
+import json
+
+
+class TestFilters(object):
+    def test_named_filter(self):
+        tags = ['foo']
+
+        filter = NamedOutputFilter(tags)
+        eq_(('foo', tags), filter.filter_msg('foo'))
+
+    def test_stdout_filter(self):
+        filter = SendToStdoutFilter()
+        eq_(('foo', ['stdout']), filter.filter_msg('foo'))
