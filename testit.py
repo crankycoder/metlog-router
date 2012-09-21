@@ -21,6 +21,9 @@ from metlogrouter.runner import run
 
 inputs = {'udp': UdpInput(port=5565)}
 decoders = {'json': JSONDecoder()}
+
+# filters are used to tag messagse to match a particular key in the
+# outputs dictionary to route messages to a final destination
 filters = [NamedOutputFilter('counts')]
 outputs = {'counts': CounterOutput(100)}
 

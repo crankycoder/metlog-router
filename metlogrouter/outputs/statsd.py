@@ -11,6 +11,7 @@
 #   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+from __future__ import absolute_import
 
 import statsd
 from types import StringTypes
@@ -42,29 +43,30 @@ class StatsdOutput(object):
         for h, port in self.hosts:
             self.clients.append(statsd.StatsClient(h, port))
 
-    def counter(self, msg):
+    def deliver(self, msg):
+        ns = msg['fields'].get('logger', None)
+        key = msg['fields']['name']
+        value = float(msg['payload'])
+        rate = float(msg['fields']['rate'])
 
+        if ns not in (None, ''):
+            key = '.'.join([ns, key])
+
+        msg_type = msg['fields']['type']
+        {'counter': self._counter,
+         'gauge': self._gauge,
+         'timer': self._timer}.get(msg_type)(key, value, rate)
+
+
+    def _gauge(self, key, value, rate):
         for client in self.clients:
-            # TODO: how are we supposed to use the ns key here?
+            client.gauge(key, value, rate)
+
+    def _counter(self, key, value, rate):
+        for client in self.clients:
             client.incr(key, value, rate)
 
-    def timer(self, msg):
-        ns = msg['fields']['logger']
-        key = msg['fields']['name']
-        value = float(msg['payload'])
-        rate = float(msg['fields']['rate'])
-
+    def _timer(self, key, value, rate):
         for client in self.clients:
-            # TODO: how are we supposed to use the ns key here?
             client.timing(key, value, rate)
 
-    def deliver(self, msg):
-        ns = msg['fields']['logger']
-        key = msg['fields']['name']
-        value = float(msg['payload'])
-        rate = float(msg['fields']['rate'])
-
-        if fields['type'] == 'counter':
-            self.counter(msg)
-        elif fields['type'] == 'timer':
-            self.timer(msg)

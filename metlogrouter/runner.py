@@ -56,6 +56,8 @@ def run(config):
 
             for output_name in outputs_to_use:
                 output_plugin = outputs[output_name]
+                # TODO: the output plugins should pull explicitly from
+                # a queue so that exceptions
                 output_plugin.deliver(msg)
 
             gevent.sleep(0)
