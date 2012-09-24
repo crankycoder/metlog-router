@@ -9,22 +9,30 @@
 #
 # Contributor(s):
 #   Victor Ng (vng@mozilla.com)
+#   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
 from __future__ import absolute_import
 
-from metlogrouter.outputs import FileOutput
-from metlogrouter.outputs import RavenOutput
-from metlogrouter.outputs import StatsdOutput
+from metlogrouter.outputs.fileoutput import FileOutput
 from metlogrouter.outputs.fileoutput import InvalidFileFormat
 from mock import patch
+from nose import SkipTest
 from nose.tools import eq_, raises, assert_raises
 import json
 import tempfile
 
 
+try:
+    from metlogrouter.outputs.statsd import StatsdOutput
+except ImportError:
+    StatsdOutput = None  # NOQA
+
+
 class TestStatsd(object):
     def setup(self):
+        if StatsdOutput is None:
+            raise SkipTest
         self.client_proxy = StatsdOutput('statsd', 'localhost')
         self.client = self.client_proxy.clients[0]
 
@@ -71,8 +79,16 @@ class TestStatsd(object):
             assert call_msg[0] == ('testing.statsd', 3.0, 8.0)
 
 
+try:
+    from metlogrouter.outputs.raven import RavenOutput
+except ImportError:
+    RavenOutput = None  # NOQA
+
+
 class TestRaven(object):
     def setup(self):
+        if RavenOutput is None:
+            raise SkipTest
         self.client_proxy = RavenOutput('test_raven',
                 "http://user:password@localhost:9000/1")
         self.client = self.client_proxy.clients[0]
