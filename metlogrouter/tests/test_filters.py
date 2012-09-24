@@ -11,8 +11,6 @@
 #   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-
-
 from nose.tools import eq_
 from metlogrouter.filters import NamedOutputFilter, SendToStdoutFilter
 from gevent.queue import Empty, Queue

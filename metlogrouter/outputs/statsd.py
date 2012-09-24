@@ -57,7 +57,6 @@ class StatsdOutput(object):
          'gauge': self._gauge,
          'timer': self._timer}.get(msg_type)(key, value, rate)
 
-
     def _gauge(self, key, value, rate):
         for client in self.clients:
             client.gauge(key, value, rate)
@@ -69,4 +68,3 @@ class StatsdOutput(object):
     def _timer(self, key, value, rate):
         for client in self.clients:
             client.timing(key, value, rate)
-
