@@ -45,10 +45,10 @@ class TestStatsd(object):
                             'payload': 2})
 
             method = self.client.incr
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 2.0, 1.0)
+            eq_(call_msg[0], ('testing.statsd', 2.0, 1.0))
 
     def test_statsd_timing(self):
         ctx = patch.object(self.client, 'timing')
@@ -59,10 +59,10 @@ class TestStatsd(object):
                             'payload': 5})
 
             method = self.client.timing
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 5.0, 4.0)
+            eq_(call_msg[0], ('testing.statsd', 5.0, 4.0))
 
     def test_statsd_gauge(self):
         ctx = patch.object(self.client, 'gauge')
@@ -73,10 +73,10 @@ class TestStatsd(object):
                             'payload': 3})
 
             method = self.client.gauge
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 3.0, 8.0)
+            eq_(call_msg[0], ('testing.statsd', 3.0, 8.0))
 
 
 try:
@@ -102,7 +102,7 @@ class TestRaven(object):
                             'payload': 'not_real_sentry_data'})
 
             method = self.client.send
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
             eq_(call_msg[0], ('not_real_sentry_data',))
