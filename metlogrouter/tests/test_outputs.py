@@ -9,22 +9,30 @@
 #
 # Contributor(s):
 #   Victor Ng (vng@mozilla.com)
+#   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
 from __future__ import absolute_import
 
-from metlogrouter.outputs import FileOutput
-from metlogrouter.outputs import RavenOutput
-from metlogrouter.outputs import StatsdOutput
+from metlogrouter.outputs.fileoutput import FileOutput
 from metlogrouter.outputs.fileoutput import InvalidFileFormat
 from mock import patch
+from nose import SkipTest
 from nose.tools import eq_, raises, assert_raises
 import json
 import tempfile
 
 
+try:
+    from metlogrouter.outputs.statsd import StatsdOutput
+except ImportError:
+    StatsdOutput = None  # NOQA
+
+
 class TestStatsd(object):
     def setup(self):
+        if StatsdOutput is None:
+            raise SkipTest
         self.client_proxy = StatsdOutput('statsd', 'localhost')
         self.client = self.client_proxy.clients[0]
 
@@ -37,10 +45,10 @@ class TestStatsd(object):
                             'payload': 2})
 
             method = self.client.incr
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 2.0, 1.0)
+            eq_(call_msg[0], ('testing.statsd', 2.0, 1.0))
 
     def test_statsd_timing(self):
         ctx = patch.object(self.client, 'timing')
@@ -51,10 +59,10 @@ class TestStatsd(object):
                             'payload': 5})
 
             method = self.client.timing
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 5.0, 4.0)
+            eq_(call_msg[0], ('testing.statsd', 5.0, 4.0))
 
     def test_statsd_gauge(self):
         ctx = patch.object(self.client, 'gauge')
@@ -65,14 +73,22 @@ class TestStatsd(object):
                             'payload': 3})
 
             method = self.client.gauge
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
-            assert call_msg[0] == ('testing.statsd', 3.0, 8.0)
+            eq_(call_msg[0], ('testing.statsd', 3.0, 8.0))
+
+
+try:
+    from metlogrouter.outputs.raven import RavenOutput
+except ImportError:
+    RavenOutput = None  # NOQA
 
 
 class TestRaven(object):
     def setup(self):
+        if RavenOutput is None:
+            raise SkipTest
         self.client_proxy = RavenOutput('test_raven',
                 "http://user:password@localhost:9000/1")
         self.client = self.client_proxy.clients[0]
@@ -86,7 +102,7 @@ class TestRaven(object):
                             'payload': 'not_real_sentry_data'})
 
             method = self.client.send
-            assert len(method.call_args_list) == 1
+            eq_(len(method.call_args_list), 1)
 
             call_msg = method.call_args_list[0]
             eq_(call_msg[0], ('not_real_sentry_data',))

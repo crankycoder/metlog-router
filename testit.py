@@ -16,7 +16,7 @@ from metlogrouter.filters import NamedOutputFilter
 
 from metlogrouter.inputs import UdpInput
 from metlogrouter.decoders import JSONDecoder
-from metlogrouter.outputs import CounterOutput
+from metlogrouter.outputs.debug import CounterOutput
 from metlogrouter.runner import run
 
 inputs = {'udp': UdpInput(port=5565)}

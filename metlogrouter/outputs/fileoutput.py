@@ -11,7 +11,6 @@
 #   Victor Ng (vng@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-
 import json
 import os
 import os.path
@@ -22,6 +21,7 @@ VALID_FMTS = ('json', 'text')
 
 class InvalidFileFormat(NotImplementedError):
     pass
+
 
 class ArgumentError(StandardError):
     pass
