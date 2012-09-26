@@ -13,7 +13,7 @@
 #
 # ***** END LICENSE BLOCK *****
 import gevent
-from gevent.queue import Empty
+from gevent.queue import Empty, Queue
 
 try:
     import simplejson as json
@@ -22,15 +22,15 @@ except ImportError:
 
 
 class JSONDecoder(object):
+    def __init__(self):
+        self.queue = Queue()
 
-    def start(self, in_q, out_q):
-        self.in_q = in_q
-        self.out_q = out_q
+    def start(self, out_queue):
+        in_queue = self.queue  # local var lookup is faster
         while True:
             try:
-                obj = self.in_q.get(timeout=0.1)
+                obj = in_queue.get(timeout=0.1)
             except Empty:
-                gevent.sleep(0)
                 continue
-            self.out_q.put(json.loads(obj))
+            out_queue.put(json.loads(obj))
             gevent.sleep(0)

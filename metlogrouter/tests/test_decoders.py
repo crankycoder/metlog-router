@@ -23,15 +23,15 @@ import json
 
 class TestDecoders(object):
     def setup(self):
-        self.in_q = Queue()
         self.out_q = Queue()
 
     def test_json(self):
         MSG = {'foo': 'bar'}
         greenlets = []
+        decoder = JSONDecoder()
 
-        def insert_json_obj(in_q):
-            in_q.put(json.dumps(MSG))
+        def insert_json_obj():
+            decoder.queue.put(json.dumps(MSG))
 
         def check_queue(output_queue):
             while True:
@@ -42,8 +42,7 @@ class TestDecoders(object):
                     pass
                 gevent.sleep(0)
 
-        decoder = JSONDecoder()
-        greenlets.append(gevent.spawn(decoder.start, self.in_q, self.out_q))
-        greenlets.append(gevent.spawn(insert_json_obj, self.in_q))
+        greenlets.append(gevent.spawn(decoder.start, self.out_q))
+        greenlets.append(gevent.spawn(insert_json_obj))
         greenlets.append(gevent.spawn(check_queue, self.out_q))
         gevent.joinall(greenlets)

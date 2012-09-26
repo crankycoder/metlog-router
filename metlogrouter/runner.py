@@ -11,8 +11,12 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+from __future__ import absolute_import
 from gevent.queue import Empty, Queue
+from metlogrouter.decoders import JSONDecoder
 import gevent
+import re
+import sys
 
 
 def run(config):
@@ -21,10 +25,11 @@ def run(config):
     """
     greenlets = []
     input_queue = Queue()
-    object_queue = Queue()
+    decoded_queue = Queue()
 
     inputs = config.get('inputs', dict())
     decoders = config.get('decoders', dict())
+    default_decoder = config.get('default_decoder')
     filters = config.get('filters', list())
     outputs = config.get('outputs', dict())
     forced_outputs = config.get('forced_outputs', list())
@@ -34,17 +39,57 @@ def run(config):
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
         print unicode(input_plugin)
 
-    for decode_plugin in decoders.values():
-        greenlets.append(gevent.spawn(decode_plugin.start,
-                                      input_queue, object_queue))
+    if not decoders:
+        decoders = {'json': JSONDecoder()}
+    if default_decoder is None:
+        if len(decoders) == 1:
+            default_decoder = decoders.keys()[0]
+        else:
+            raise ValueError('No default decoder specified.')
+    elif default_decoder not in decoders:
+        raise ValueError('Specified default decoder does not exist: %s'
+                         % default_decoder)
 
-    def filter_processor():
+    for decode_plugin in decoders.values():
+        greenlets.append(gevent.spawn(decode_plugin.start, decoded_queue))
+
+    decoder_names = '|'.join(decoders.keys())
+    decoders_regex = '\A::(%s)::' % decoder_names
+    decoders_regex = re.compile(decoders_regex)
+
+    def input_processor():
         """
-        Get messages from the input queue and run them through the filters.
+        Get messages from the input queue, determine the appropriate decoder to
+        use, and add the message to that decoder's queue.
         """
         while True:
             try:
-                msg = object_queue.get(timeout=0.01)
+                msg = input_queue.get(timeout=0.1)
+            except Empty:
+                continue
+
+            match = decoders_regex.match(msg)
+            decoder_name = (default_decoder if match is None
+                            else match.groups()[0])
+            decoder = decoders.get(decoder_name)
+            if decoder is None:
+                sys.stderr.write('Decoder not available: %s\n' % decoder_name)
+                sys.stderr.flush()
+                gevent.sleep(0)
+                continue
+
+            decoder.queue.put(msg)
+            gevent.sleep(0)
+
+    greenlets.append(gevent.spawn(input_processor))
+
+    def filter_processor():
+        """
+        Get messages from the decoded queue and run them through the filters.
+        """
+        while True:
+            try:
+                msg = decoded_queue.get(timeout=0.1)
             except Empty:
                 continue
 

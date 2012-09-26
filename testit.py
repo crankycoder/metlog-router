@@ -13,22 +13,21 @@
 #
 # ***** END LICENSE BLOCK *****
 from metlogrouter.filters import NamedOutputFilter
-
 from metlogrouter.inputs import UdpInput
-from metlogrouter.decoders import JSONDecoder
-from metlogrouter.outputs.debug import CounterOutput
+from metlogrouter.outputs.debug import CounterOutput, StreamOutput
 from metlogrouter.runner import run
+import sys
 
 inputs = {'udp': UdpInput(port=5565)}
-decoders = {'json': JSONDecoder()}
 
 # filters are used to tag messagse to match a particular key in the
 # outputs dictionary to route messages to a final destination
-filters = [NamedOutputFilter('counts')]
-outputs = {'counts': CounterOutput(100)}
+filters = [NamedOutputFilter('stdout')]
+outputs = {'counts': CounterOutput(100),
+           'stdout': StreamOutput(sys.stdout),
+           }
 
 config = {'inputs': inputs,
-          'decoders': decoders,
           'filters': filters,
           'outputs': outputs,
           }
