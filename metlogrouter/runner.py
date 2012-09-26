@@ -68,9 +68,11 @@ def run(config):
             except Empty:
                 continue
 
+            decoder_name = default_decoder
             match = decoders_regex.match(msg)
-            decoder_name = (default_decoder if match is None
-                            else match.groups()[0])
+            if match is not None:
+                decoder_name = match.groups()[0]
+                msg = msg[match.end():]
             decoder = decoders.get(decoder_name)
             if decoder is None:
                 sys.stderr.write('Decoder not available: %s\n' % decoder_name)
