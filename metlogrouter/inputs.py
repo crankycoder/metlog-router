@@ -11,9 +11,8 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-from gevent import socket
+from gevent import select, socket
 import gevent
-import select
 
 
 class UdpInput(object):

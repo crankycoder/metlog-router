@@ -18,11 +18,13 @@ from metlogrouter.outputs.debug import CounterOutput, StreamOutput
 from metlogrouter.runner import run
 import sys
 
-inputs = {'udp': UdpInput(port=5565)}
+inputs = {'udp': UdpInput(port=5565),
+          'udp2': UdpInput(port=5566),
+          }
 
 # filters are used to tag messagse to match a particular key in the
 # outputs dictionary to route messages to a final destination
-filters = [NamedOutputFilter('stdout')]
+filters = [NamedOutputFilter('counts')]
 outputs = {'counts': CounterOutput(100),
            'stdout': StreamOutput(sys.stdout),
            }
