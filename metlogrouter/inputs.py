@@ -13,6 +13,7 @@
 # ***** END LICENSE BLOCK *****
 from gevent import socket
 import gevent
+import select
 
 
 class UdpInput(object):
@@ -31,9 +32,7 @@ class UdpInput(object):
 
     def start(self, queue):
         while True:
-            data, addr = self.socket.recvfrom(60000)
-            if not data:
-                gevent.sleep(.01)
-                continue
+            result = select.select([self.socket], [], [])
+            data, addr = result[0][0].recvfrom(60000)
             queue.put(data)
             gevent.sleep(0)
