@@ -29,7 +29,7 @@ from metlogrouter.runner import run
 import sys
 
 arguments = docopt(__doc__)
-if '--fd' in arguments:
+if arguments.get('--fd'):
     udpinput = UdpInput(fd=int(arguments['--fd']))
 else:
     udpinput = UdpInput(port=5565)
