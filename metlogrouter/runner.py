@@ -13,7 +13,7 @@
 # ***** END LICENSE BLOCK *****
 from __future__ import absolute_import
 from gevent.queue import Empty, Queue
-from metlogrouter.decoders import JSONDecoder
+from metlogrouter.decoders.json import JSONDecoder
 import gevent
 import re
 import sys
