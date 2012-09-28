@@ -9,19 +9,26 @@
 #
 # Contributor(s):
 #   Victor Ng (vng@mozilla.com)
+#   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
-
-
-from nose.tools import eq_
-from metlogrouter.decoders import JSONDecoder
 from gevent.queue import Empty, Queue
+from metlogrouter.decoders.json import JSONDecoder
+from nose import SkipTest
+from nose.tools import eq_
 import gevent
 
 import json
 
 
-class TestDecoders(object):
+try:
+    from metlogrouter.decoders.msgpack import MsgPackDecoder
+    import msgpack
+except ImportError:
+    MsgPackDecoder = None  # NOQA
+
+
+class TestJsonDecoder(object):
     def setup(self):
         self.out_q = Queue()
 
@@ -44,5 +51,34 @@ class TestDecoders(object):
 
         greenlets.append(gevent.spawn(decoder.start, self.out_q))
         greenlets.append(gevent.spawn(insert_json_obj))
+        greenlets.append(gevent.spawn(check_queue, self.out_q))
+        gevent.joinall(greenlets)
+
+
+class TestMsgPackDecoder(object):
+    def setup(self):
+        if MsgPackDecoder is None:
+            raise SkipTest
+        self.out_q = Queue()
+
+    def test_msgpack(self):
+        MSG = {'foo': 'bar'}
+        greenlets = []
+        decoder = MsgPackDecoder()
+
+        def insert_msgpack_obj():
+            decoder.queue.put(msgpack.dumps(MSG))
+
+        def check_queue(output_queue):
+            while True:
+                try:
+                    eq_(MSG, output_queue.get(block=False))
+                    gevent.killall(greenlets)
+                except Empty:
+                    pass
+                gevent.sleep(0)
+
+        greenlets.append(gevent.spawn(decoder.start, self.out_q))
+        greenlets.append(gevent.spawn(insert_msgpack_obj))
         greenlets.append(gevent.spawn(check_queue, self.out_q))
         gevent.joinall(greenlets)
