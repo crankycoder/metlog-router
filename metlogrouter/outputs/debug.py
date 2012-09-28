@@ -17,6 +17,7 @@ try:
 except ImportError:
     import json  # NOQA
 
+import gevent
 import sys
 import time
 
@@ -35,16 +36,32 @@ class CounterOutput(object):
     def __init__(self, modulo=1000, stream=None):
         self.count = 0
         self.modulo = modulo
-        self.start = time.time()
         if stream is None:
             stream = sys.stdout
-        self.stream = stream
+
+        def timerloop():
+            last_time = time.time()
+            last_count = self.count
+            zeroes = 0
+            while True:
+                gevent.sleep(1)
+                new_count = self.count
+                now = time.time()
+                msgs_sent = new_count - last_count
+                last_count = new_count
+                elapsed_time = now - last_time
+                last_time = now
+                rate = msgs_sent / elapsed_time
+                if msgs_sent == 0:
+                    if zeroes == 3:
+                        continue
+                    zeroes += 1
+                else:
+                    zeroes = 0
+                stream.write("Got %d messages.  %0.2f msg/sec\n" %
+                             (new_count, rate))
+
+        gevent.spawn(timerloop)
 
     def deliver(self, msg):
         self.count += 1
-
-        if (self.count % self.modulo) == 0:
-            now = time.time()
-            self.stream.write("Got %d messages.  %0.2f msg/sec\n" % \
-                (self.count, (self.count / (now - self.start))))
-            self.stream.flush()
