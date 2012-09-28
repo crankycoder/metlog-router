@@ -17,6 +17,7 @@ try:
 except ImportError:
     import json  # NOQA
 
+import sys
 import time
 
 
@@ -31,15 +32,19 @@ class StreamOutput(object):
 
 
 class CounterOutput(object):
-    def __init__(self, modulo=1000):
+    def __init__(self, modulo=1000, stream=None):
         self.count = 0
         self.modulo = modulo
         self.start = time.time()
+        if stream is None:
+            stream = sys.stdout
+        self.stream = stream
 
     def deliver(self, msg):
         self.count += 1
 
         if (self.count % self.modulo) == 0:
             now = time.time()
-            print "Got %d messages.  %0.2f msg/sec" % \
-                (self.count, (self.count / (now - self.start)))
+            self.stream.write("Got %d messages.  %0.2f msg/sec\n" % \
+                (self.count, (self.count / (now - self.start))))
+            self.stream.flush()

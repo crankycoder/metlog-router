@@ -37,7 +37,8 @@ def run(config):
     for input_plugin in inputs.values():
         # inputs must only block greenlets, *not* the entire thread
         greenlets.append(gevent.spawn(input_plugin.start, input_queue))
-        print unicode(input_plugin)
+        sys.stdout.write('%s\n' % unicode(input_plugin))
+    sys.stdout.flush()
 
     if not decoders:
         decoders = {'json': JSONDecoder()}
