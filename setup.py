@@ -3,7 +3,7 @@ import sys, os
 
 version = '0.1'
 
-requires = ['gevent']
+requires = ['docopt', 'gevent']
 
 setup(name='metlog-router',
       version=version,

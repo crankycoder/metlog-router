@@ -12,14 +12,29 @@
 #   Rob Miller (rmiller@mozilla.com)
 #
 # ***** END LICENSE BLOCK *****
+"""Metlog Router testit script
+
+Usage:
+  testit.py [--fd=<file descriptor>]
+
+Options:
+  --fd=<file descriptor>      UDP listener socket file descriptor
+
+"""
+from docopt import docopt
 from metlogrouter.filters import NamedOutputFilter
 from metlogrouter.inputs import UdpInput
 from metlogrouter.outputs.debug import CounterOutput, StreamOutput
 from metlogrouter.runner import run
 import sys
 
-inputs = {'udp': UdpInput(port=5565),
-          'udp2': UdpInput(port=5566),
+arguments = docopt(__doc__)
+if '--fd' in arguments:
+    udpinput = UdpInput(fd=int(arguments['--fd']))
+else:
+    udpinput = UdpInput(port=5565)
+
+inputs = {'udp': udpinput,
           }
 
 # filters are used to tag messagse to match a particular key in the
@@ -33,4 +48,5 @@ config = {'inputs': inputs,
           'filters': filters,
           'outputs': outputs,
           }
+
 run(config)

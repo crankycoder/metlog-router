@@ -19,10 +19,13 @@ class UdpInput(object):
     """
     Simple UDP socket listener.
     """
-    def __init__(self, host='', port=0):
+    def __init__(self, host='', port=0, fd=None):
         self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind((host, port))
+        if fd is not None:
+            self.socket = socket.fromfd(fd, socket.AF_INET, socket.SOCK_DGRAM)
+        else:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket.bind((host, port))
         self.active_host, self.active_port = self.socket.getsockname()
 
     def __unicode__(self):
