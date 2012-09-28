@@ -20,8 +20,8 @@ class TestFilters(object):
         tags = ['foo']
 
         filter = NamedOutputFilter(tags)
-        eq_(('foo', tags), filter.filter_msg('foo'))
+        eq_(('foo', set(tags)), filter.filter_msg('foo', set()))
 
     def test_stdout_filter(self):
         filter = SendToStdoutFilter()
-        eq_(('foo', ['stdout']), filter.filter_msg('foo'))
+        eq_(('foo', set(['stdout'])), filter.filter_msg('foo', set()))

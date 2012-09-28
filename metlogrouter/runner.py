@@ -32,7 +32,7 @@ def run(config):
     default_decoder = config.get('default_decoder')
     filters = config.get('filters', list())
     outputs = config.get('outputs', dict())
-    forced_outputs = config.get('forced_outputs', list())
+    default_outputs = config.get('default_outputs', list())
 
     for input_plugin in inputs.values():
         # inputs must only block greenlets, *not* the entire thread
@@ -96,13 +96,11 @@ def run(config):
             except Empty:
                 continue
 
-            outputs_to_use = set(forced_outputs)
+            msg_outputs = set(default_outputs)
             for filter_plugin in filters:
-                msg, added_outputs = filter_plugin.filter_msg(msg)
-                if added_outputs:
-                    outputs_to_use.update([name for name in added_outputs])
+                msg, msg_outputs = filter_plugin.filter_msg(msg, msg_outputs)
 
-            for output_name in outputs_to_use:
+            for output_name in msg_outputs:
                 output_plugin = outputs[output_name]
                 # TODO: the output plugins should pull explicitly from
                 # a queue so that exceptions

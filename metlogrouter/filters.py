@@ -25,23 +25,25 @@ class EchoFilter(object):
     def __init__(self, stream):
         self.stream = stream
 
-    def filter_msg(self, msg):
+    def filter_msg(self, msg, outputs):
         msg_json = json.dumps(msg)
         self.stream.write(msg_json + '\n')
         self.stream.flush()
-        return (msg, None)
+        return (msg, outputs)
 
 
 class SendToStdoutFilter(object):
-    def filter_msg(self, msg):
-        return (msg, ['stdout'])
+    def filter_msg(self, msg, outputs):
+        outputs.add('stdout')
+        return (msg, outputs)
 
 
 class NamedOutputFilter(object):
     def __init__(self, outputs):
         if isinstance(outputs, StringTypes):
             outputs = [outputs]
-        self.outputs = outputs
+        self.outputs = set(outputs)
 
-    def filter_msg(self, msg):
-        return (msg, self.outputs)
+    def filter_msg(self, msg, outputs):
+        outputs.update(self.outputs)
+        return (msg, outputs)
