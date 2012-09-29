@@ -59,6 +59,7 @@ class CounterOutput(object):
                     zeroes = 0
                 stream.write("Got %d messages.  %0.2f msg/sec\n" %
                              (new_count, rate))
+                stream.flush()
 
         gevent.spawn(timerloop)
 
