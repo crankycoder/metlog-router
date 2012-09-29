@@ -40,7 +40,7 @@ inputs = {'udp': udpinput,
 # filters are used to tag messagse to match a particular key in the
 # outputs dictionary to route messages to a final destination
 filters = [NamedOutputFilter('counts')]
-outputs = {'counts': CounterOutput(100),
+outputs = {'counts': CounterOutput(),
            'stdout': StreamOutput(sys.stdout),
            }
 

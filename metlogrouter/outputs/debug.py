@@ -33,9 +33,8 @@ class StreamOutput(object):
 
 
 class CounterOutput(object):
-    def __init__(self, modulo=1000, stream=None):
+    def __init__(self, stream=None):
         self.count = 0
-        self.modulo = modulo
         if stream is None:
             stream = sys.stdout
 
