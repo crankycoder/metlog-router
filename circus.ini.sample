@@ -1,0 +1,25 @@
+[circus]
+check_delay = 5
+endpoint = tcp://127.0.0.1:5555
+pubsub_endpoint = tcp://127.0.0.1:5556
+stats_endpoint = tcp://127.0.0.1:5557
+
+[watcher:metlogrouter]
+cmd = /PATH/TO/METLOGROUTER/VENV/bin/python /PATH/TO/METLOGROUTER/SOURCE/testit.py --fd=$(circus.sockets.udpinput)
+use_sockets = True
+warmup_delay = 0
+numprocesses = 2
+
+stdout_stream.class = FileStream
+stdout_stream.filename = log/test.log
+stdout_stream.refresh_time = 0.3
+
+stderr_stream.class = FileStream
+stderr_stream.filename = log/test.err
+stderr_stream.refresh_time = 0.3
+
+[socket:udpinput]
+host = 0.0.0.0
+port = 5565
+family = AF_INET
+type = SOCK_DGRAM
