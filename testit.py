@@ -15,10 +15,11 @@
 """Metlog Router testit script
 
 Usage:
-  testit.py [--fd=<file descriptor>]
+  testit.py [--fd=<file descriptor>] [--sqlurl=<URL>]
 
 Options:
   --fd=<file descriptor>      UDP listener socket file descriptor
+  --sqlurl=<URL>              SQLAlchemy connection string
 
 """
 from docopt import docopt
@@ -37,12 +38,19 @@ else:
 inputs = {'udp': udpinput,
           }
 
-# filters are used to tag messagse to match a particular key in the
-# outputs dictionary to route messages to a final destination
-filters = [NamedOutputFilter('counts')]
+# filters are used to tag messages to match a particular key in the outputs
+# dictionary to route messages to a final destination
+filters = [NamedOutputFilter(['counts'])]
 outputs = {'counts': CounterOutput(),
            'stdout': StreamOutput(sys.stdout),
            }
+
+if arguments.get('--sqlurl'):
+    from metlogrouter.outputs.sqla import SqlAlchemyOutput
+    from sqlalchemy import create_engine
+    engine = create_engine(arguments['--sqlurl'])
+    outputs['sqla'] = SqlAlchemyOutput(engine)
+    filters = [NamedOutputFilter(['counts', 'sqla'])]
 
 config = {'inputs': inputs,
           'filters': filters,
