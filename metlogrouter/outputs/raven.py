@@ -22,9 +22,7 @@ class RavenOutput(object):
     """
     This output plugin talks to Sentry servers
     """
-    def __init__(self, name, uri):
-        self.name = name
-
+    def __init__(self, uri):
         if isinstance(uri, StringTypes):
             uri = [uri]
         self.clients = [Client(u) for u in uri]

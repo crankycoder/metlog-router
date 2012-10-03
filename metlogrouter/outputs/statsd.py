@@ -22,9 +22,7 @@ class StatsdOutput(object):
     Send messages to statsd
     """
 
-    def __init__(self, name, hosts):
-        self.name = name
-
+    def __init__(self, hosts):
         if isinstance(hosts, StringTypes):
             hosts = [hosts]
 

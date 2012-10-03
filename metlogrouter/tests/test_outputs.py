@@ -33,7 +33,7 @@ class TestStatsd(object):
     def setup(self):
         if StatsdOutput is None:
             raise SkipTest
-        self.client_proxy = StatsdOutput('statsd', 'localhost')
+        self.client_proxy = StatsdOutput('localhost')
         self.client = self.client_proxy.clients[0]
 
     def test_statsd_incr(self):
@@ -89,8 +89,8 @@ class TestRaven(object):
     def setup(self):
         if RavenOutput is None:
             raise SkipTest
-        self.client_proxy = RavenOutput('test_raven',
-                "http://user:password@localhost:9000/1")
+        self.client_proxy = RavenOutput(
+            "http://user:password@localhost:9000/1")
         self.client = self.client_proxy.clients[0]
 
     def test_sentry(self):
