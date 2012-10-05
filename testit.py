@@ -65,6 +65,6 @@ if arguments.get('--decoder'):
         config['decoders'] = {'msgpack': MsgPackDecoder()}
         config['default_decoder'] = 'msgpack'
     elif decoder != 'json':
-        raise ValueError('No %s decoder exists' % str(decoder))
+        raise ValueError('No "%s" decoder exists' % str(decoder))
 
 run(config)
