@@ -13,7 +13,10 @@
 # ***** END LICENSE BLOCK *****
 from __future__ import absolute_import
 
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime
+from sqlalchemy import (Table, Column, Integer, String, MetaData, DateTime,
+                        Index)
+from sqlalchemy.exc import OperationalError
+from types import StringTypes
 import dateutil.parser
 
 try:
@@ -27,17 +30,18 @@ except ImportError:
 # `field1` field on the SQL database side.
 DEFAULT_FIELDSMAP = {'timer': {'name': 1},
                      'counter': {'name': 1},
+                     '_indexed': ['type', 'timestamp', 'hostname', 'logger'],
                      }
 
 metadata = MetaData()
 messages = Table('messages', metadata,
                  Column('id', Integer, primary_key=True),
-                 Column('type', String, nullable=False),
+                 Column('type', String(length=30), nullable=False),
                  Column('timestamp', DateTime, nullable=False),
                  Column('severity', Integer, nullable=False),
-                 Column('hostname', String, nullable=False),
+                 Column('hostname', String(length=60), nullable=False),
                  Column('pid', Integer, nullable=False),
-                 Column('logger', String, nullable=False),
+                 Column('logger', String(length=30), nullable=False),
                  Column('payload', String),
                  Column('env_version', String, nullable=False),
                  Column('fields', String),
@@ -57,9 +61,35 @@ class SqlAlchemyOutput(object):
         NOTE: `engine` must be using a gevent-safe db connector.
         """
         self.connection = engine.connect()
-        self.fieldsmap = (fieldsmap if fieldsmap is not None
-                          else DEFAULT_FIELDSMAP)
         metadata.create_all(engine)
+        self.fieldsmap = (fieldsmap if fieldsmap is not None
+                          else DEFAULT_FIELDSMAP.copy())
+
+        # create explicitly specified indexes
+        indexed = self.fieldsmap.pop('_indexed')
+        for fieldnames in indexed:
+            if isinstance(fieldnames, StringTypes):
+                fieldnames = [fieldnames]
+            idxname = '_'.join(['ix_messages'] + list(fieldnames))
+            col_objs = [getattr(messages.c, fieldname)
+                        for fieldname in fieldnames]
+            idx = Index(idxname, *col_objs)
+            try:
+                idx.create(engine)
+            except OperationalError:
+                pass
+
+        # create indexes for the used `fieldN` fields
+        used_fields = set()
+        for typemap in self.fieldsmap.values():
+            used_fields.update(typemap.values())
+        for field in used_fields:
+            idxname = 'ix_messages_field%d' % field
+            idx = Index(idxname, getattr(messages.c, fieldname))
+            try:
+                idx.create(engine)
+            except OperationalError:
+                pass
 
     def deliver(self, msg):
         conn = self.connection
