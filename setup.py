@@ -20,7 +20,9 @@ setup(name='metlog-router',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
+      entry_points={
+          'console_scripts': [
+              'mlrouterd = metlogrouter.command:mlrouterd',
+              ],
+          }
       )
