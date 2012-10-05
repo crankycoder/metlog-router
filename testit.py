@@ -15,14 +15,16 @@
 """Metlog Router testit script
 
 Usage:
-  testit.py [--fd=<file descriptor>] [--sqlurl=<URL>]
+  testit.py [--fd=<file descriptor>] [--sqlurl=<URL>] [--decoder=json|msgpack]
 
 Options:
   --fd=<file descriptor>      UDP listener socket file descriptor
   --sqlurl=<URL>              SQLAlchemy connection string
+  --decoder=json|msgpack      Decoder to use
 
 """
 from docopt import docopt
+from metlogrouter.decoders.msgpack import MsgPackDecoder
 from metlogrouter.filters import NamedOutputFilter
 from metlogrouter.inputs import UdpInput
 from metlogrouter.outputs.debug import CounterOutput, StreamOutput
@@ -56,5 +58,13 @@ config = {'inputs': inputs,
           'filters': filters,
           'outputs': outputs,
           }
+
+if arguments.get('--decoder'):
+    decoder = arguments['--decoder']
+    if decoder == 'msgpack':
+        config['decoders'] = {'msgpack': MsgPackDecoder()}
+        config['default_decoder'] = 'msgpack'
+    elif decoder != 'json':
+        raise ValueError('No %s decoder exists' % str(decoder))
 
 run(config)
