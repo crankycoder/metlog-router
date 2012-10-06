@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 from gevent.queue import Empty, Queue
 from metlogrouter.decoders.json import JSONDecoder
+from metlogrouter.outputs import OutputQueue
 import gevent
 import re
 import sys
@@ -86,6 +87,11 @@ def run(config):
 
     greenlets.append(gevent.spawn(input_processor))
 
+    for output_name, output_plugin in outputs.items():
+        output_queue = OutputQueue(output_plugin)
+        greenlets.append(gevent.spawn(output_queue.start))
+        outputs[output_name] = output_queue
+
     def filter_processor():
         """
         Get messages from the decoded queue and run them through the filters.
@@ -101,10 +107,8 @@ def run(config):
                 msg, msg_outputs = filter_plugin.filter_msg(msg, msg_outputs)
 
             for output_name in msg_outputs:
-                output_plugin = outputs[output_name]
-                # TODO: the output plugins should pull explicitly from
-                # a queue so that exceptions
-                output_plugin.deliver(msg)
+                output_wrapper = outputs[output_name]
+                output_wrapper.queue.put(msg)
 
             gevent.sleep(0)
 
