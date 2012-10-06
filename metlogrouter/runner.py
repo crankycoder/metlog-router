@@ -56,7 +56,7 @@ def run(config):
         greenlets.append(gevent.spawn(decode_plugin.start, decoded_queue))
 
     decoder_names = '|'.join(decoders.keys())
-    decoders_regex = '\A::(%s)::' % decoder_names
+    decoders_regex = '\A(%s)::' % decoder_names
     decoders_regex = re.compile(decoders_regex)
 
     def input_processor():
@@ -66,15 +66,16 @@ def run(config):
         """
         while True:
             try:
-                msg = input_queue.get(timeout=0.1)
+                msg_bytes = input_queue.get(timeout=0.1)
             except Empty:
                 continue
 
             decoder_name = default_decoder
-            match = decoders_regex.match(msg)
-            if match is not None:
-                decoder_name = match.groups()[0]
-                msg = msg[match.end():]
+            if msg_bytes[:1] == b'\x00':
+                match = decoders_regex.match(msg_bytes[1:])
+                if match is not None:
+                    decoder_name = match.groups()[0]
+                    msg_bytes = msg_bytes[match.end():]
             decoder = decoders.get(decoder_name)
             if decoder is None:
                 sys.stderr.write('Decoder not available: %s\n' % decoder_name)
@@ -82,7 +83,7 @@ def run(config):
                 gevent.sleep(0)
                 continue
 
-            decoder.queue.put(msg)
+            decoder.queue.put(msg_bytes)
             gevent.sleep(0)
 
     greenlets.append(gevent.spawn(input_processor))
