@@ -28,7 +28,7 @@ class OutputQueue(object):
         in_queue = self.queue
         while True:
             try:
-                msg = in_queue.get(timeout=0.1)
+                msg = in_queue.get(timeout=0.01)
             except Empty:
                 continue
             plugin.deliver(msg)

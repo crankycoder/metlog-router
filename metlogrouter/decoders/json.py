@@ -29,7 +29,7 @@ class JSONDecoder(object):
         in_queue = self.queue  # local var lookup is faster
         while True:
             try:
-                obj = in_queue.get(timeout=0.1)
+                obj = in_queue.get(timeout=0.01)
             except Empty:
                 continue
             out_queue.put(json.loads(obj))

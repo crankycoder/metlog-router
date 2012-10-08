@@ -66,7 +66,7 @@ def run(config):
         """
         while True:
             try:
-                msg_bytes = input_queue.get(timeout=0.1)
+                msg_bytes = input_queue.get(timeout=0.01)
             except Empty:
                 continue
 
@@ -99,7 +99,7 @@ def run(config):
         """
         while True:
             try:
-                msg = decoded_queue.get(timeout=0.1)
+                msg = decoded_queue.get(timeout=0.01)
             except Empty:
                 continue
 
