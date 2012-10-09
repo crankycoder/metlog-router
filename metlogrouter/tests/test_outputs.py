@@ -21,6 +21,7 @@ from nose import SkipTest
 from nose.tools import eq_, raises, assert_raises
 import json
 import tempfile
+import syslog
 
 
 try:
@@ -207,3 +208,33 @@ class TestFile(object):
         FileOutput(self.temp_filename,
                 output_fmt='bad_fmt',
                 keypath='fields/bar')
+
+
+###########
+
+try:
+    from metlogrouter.outputs.syslog import SyslogOutput
+except ImportError:
+    SyslogOutput = None  # NOQA
+
+
+class TestSyslog(object):
+    def setup(self):
+        if SyslogOutput is None:
+            raise SkipTest
+        self.syslog = SyslogOutput()
+
+    def test_sylog(self):
+        # patch the gevent selector
+
+        msg = {"facility": 160, "priority": 0, "ident": "foo",
+                "logopt": 0, "msg": "some_msg"}
+
+        with patch.object(syslog, 'openlog') as open_log:
+            with patch.object(syslog, 'syslog') as mock_syslog:
+                self.syslog.deliver(msg)
+                eq_(1, len(mock_syslog.mock_calls))
+                eq_(mock_syslog.call_args[0], (0, 'some_msg'))
+
+                eq_(1, len(open_log.mock_calls))
+                eq_(open_log.call_args[0], ('foo', 0, 160))
