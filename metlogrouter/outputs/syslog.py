@@ -16,6 +16,10 @@ from __future__ import absolute_import
 import syslog
 import threading
 
+from cef import _str2logopt
+from cef import _str2facility
+from cef import _str2priority
+
 
 class SyslogOutput(object):
     """
@@ -29,10 +33,11 @@ class SyslogOutput(object):
 
     def deliver(self, msg):
         with self._log_lock:
-            ident = msg['ident'].encode('utf8')
-            logopt = msg['logopt']
-            facility = msg['facility']
-            priority = msg['priority']
+
+            logopt = _str2logopt(msg['syslog_options'])
+            facility = _str2facility(msg['syslog_facility'])
+            ident = msg['syslog_ident'].encode('utf8')
+            priority = _str2priority(msg['syslog_priority'])
             syslog_msg = msg['msg'].encode('utf8')
 
             if self._LOG_OPENED != (ident, logopt, facility):

@@ -227,8 +227,11 @@ class TestSyslog(object):
     def test_sylog(self):
         # patch the gevent selector
 
-        msg = {"facility": 160, "priority": 0, "ident": "foo",
-                "logopt": 0, "msg": "some_msg"}
+        msg = {"syslog_facility": "KERN",
+               "syslog_priority": "EMERG",
+               "syslog_options": "PID,CONS",
+               "syslog_ident": "foo",
+               "msg": "some_msg"}
 
         with patch.object(syslog, 'openlog') as open_log:
             with patch.object(syslog, 'syslog') as mock_syslog:
@@ -237,4 +240,9 @@ class TestSyslog(object):
                 eq_(mock_syslog.call_args[0], (0, 'some_msg'))
 
                 eq_(1, len(open_log.mock_calls))
-                eq_(open_log.call_args[0], ('foo', 0, 160))
+
+                expected_options = syslog.LOG_PID | syslog.LOG_CONS
+                expected_priority = syslog.LOG_EMERG
+                eq_(open_log.call_args[0], ('foo',
+                    expected_options,
+                    expected_priority))
